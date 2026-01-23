@@ -16,7 +16,7 @@
 |---------|---------|
 | `npm run dev` | Dev server (localhost:5173) |
 | `npm run build` | Production build to dist/ |
-| `npm run preview` | Preview build (localhost:4173) |
+| `npm run preview` | Preview build (localhost:10000) |
 | `npx tsc --noEmit` | Type check |
 
 ## Quality Gates
@@ -25,7 +25,7 @@
 - `npm run build` succeeds
 
 ## Staging
-- **URL**: https://arnass-mac-mini.tail2509f8.ts.net:4173
+- **URL**: https://arnass-mac-mini.tail2509f8.ts.net:10000
 - **Start**: `npm run build && npm run preview -- --host`
 - **Stop**: Ctrl+C or kill the process
 
