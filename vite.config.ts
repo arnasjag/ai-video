@@ -29,5 +29,11 @@ export default defineConfig({
         enabled: true
       }
     })
-  ]
+  ],
+  preview: {
+    allowedHosts: ['arnass-mac-mini.tail2509f8.ts.net']
+  },
+  server: {
+    allowedHosts: ['arnass-mac-mini.tail2509f8.ts.net']
+  }
 })
