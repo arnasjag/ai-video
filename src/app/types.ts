@@ -1,14 +1,41 @@
-export type Screen = 'intro' | 'upload' | 'payment' | 'success';
+// Screen types for onboarding
+export type OnboardingStep = 'intro' | 'upload' | 'payment' | 'success';
 
-export interface AppState {
-  currentScreen: Screen;
+export interface OnboardingState {
+  currentStep: OnboardingStep;
   uploadedImage: string | null;
+  filterId: string;
 }
 
-export interface ScreenCallbacks {
-  onNavigate: (screen: Screen) => void;
+export interface OnboardingCallbacks {
+  onNavigate: (step: OnboardingStep) => void;
   onSetImage: (imageData: string) => void;
   getImage: () => string | null;
+  onComplete: () => void;
+}
+
+// Filter configuration
+export type FilterCategory = 'trending' | 'new' | 'pandora' | 'viral' | 'winter' | 'popular';
+
+export interface FilterConfig {
+  id: string;
+  name: string;
+  icon: string;
+  category: FilterCategory;
+  previewImage: string;
+  creatorName: string;
+  likes: number;
+  isNew?: boolean;
+  isPremium?: boolean;
+  price: number;
+  introTitle: string;
+  introSubtitle: string;
+}
+
+export interface FilterSection {
+  id: string;
+  title: string;
+  filters: FilterConfig[];
 }
 
 // PWA Install prompt event (Chrome/Android)

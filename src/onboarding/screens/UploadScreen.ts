@@ -1,4 +1,4 @@
-import type { ScreenCallbacks } from '../types';
+import type { OnboardingCallbacks } from '../../app/types';
 import { readFileAsDataUrl } from '../../utils/imageUtils';
 
 export function render(imageData: string | null): string {
@@ -27,7 +27,7 @@ export function render(imageData: string | null): string {
   `;
 }
 
-export function init(callbacks: ScreenCallbacks): void {
+export function init(callbacks: OnboardingCallbacks): void {
   const uploadArea = document.getElementById('upload-area');
   const fileInput = document.getElementById('image-input') as HTMLInputElement;
   const continueBtn = document.getElementById('continue-btn') as HTMLButtonElement;

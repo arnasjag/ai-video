@@ -1,4 +1,5 @@
-import type { ScreenCallbacks } from '../types';
+import type { OnboardingCallbacks } from '../../app/types';
+import { getFilterById } from '../../data/mockFilters';
 
 declare global {
   interface Window {
@@ -20,13 +21,18 @@ function isStandalone(): boolean {
          (navigator as any).standalone === true;
 }
 
-export function render(): string {
+export function render(filterId?: string): string {
+  const filter = filterId ? getFilterById(filterId) : null;
+  const title = filter?.introTitle || 'Turn Picture into Fun AI Video';
+  const subtitle = filter?.introSubtitle || 'Upload any photo and our AI transforms it into an amazing video';
+  const icon = filter?.icon || '🎬';
+
   return `
     <div class="screen">
       <div class="screen-content">
-        <div class="screen-icon">🎬</div>
-        <h1 class="title-large">Turn Picture into Fun AI Video</h1>
-        <p class="body-text">Upload any photo and our AI transforms it into an amazing video</p>
+        <div class="screen-icon">${icon}</div>
+        <h1 class="title-large">${title}</h1>
+        <p class="body-text">${subtitle}</p>
       </div>
       <div class="screen-footer">
         <button class="button-primary" id="start-btn">Get Started</button>
@@ -35,9 +41,7 @@ export function render(): string {
   `;
 }
 
-export function init(callbacks: ScreenCallbacks): void {
-  const startBtn = document.getElementById('start-btn');
-
+export function init(callbacks: OnboardingCallbacks): void {
   // Show add-to-homescreen prompt if not already installed
   if (!isStandalone() && window.AddToHomeScreen) {
     window.AddToHomeScreenInstance = window.AddToHomeScreen({
@@ -49,8 +53,7 @@ export function init(callbacks: ScreenCallbacks): void {
     window.AddToHomeScreenInstance.show('en');
   }
 
-  startBtn?.addEventListener('click', () => {
-    // Hide the prompt if it's still showing
+  document.getElementById('start-btn')?.addEventListener('click', () => {
     if (window.AddToHomeScreenInstance) {
       window.AddToHomeScreenInstance.hide();
     }
