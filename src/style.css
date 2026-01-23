@@ -426,3 +426,15 @@ body {
   from { transform: scale(0.8); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+/* iOS Install Hint */
+.ios-hint {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-top: 8px;
+}
+
+.ios-hint .share-icon {
+  font-weight: 600;
+}

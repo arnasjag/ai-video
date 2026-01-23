@@ -2,7 +2,6 @@ import type { ScreenCallbacks, BeforeInstallPromptEvent } from '../types';
 
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
-// Capture install prompt event
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e as BeforeInstallPromptEvent;
@@ -18,7 +17,8 @@ function isStandalone(): boolean {
 }
 
 export function render(): string {
-  const isInstalled = isStandalone();
+  const installed = isStandalone();
+  const showIOSHint = isIOS() && !installed;
   
   return `
     <div class="screen">
@@ -28,78 +28,25 @@ export function render(): string {
         <p class="body-text">Upload any photo and our AI transforms it into an amazing video</p>
       </div>
       <div class="screen-footer">
-        ${isInstalled ? `
-          <button class="button-primary" id="continue-btn">Continue</button>
-        ` : `
-          <button class="button-primary" id="install-btn">Install App</button>
-          <button class="button-secondary" id="skip-btn">Continue without installing</button>
-        `}
+        <button class="button-primary" id="start-btn">Get Started</button>
+        ${showIOSHint ? `
+          <p class="ios-hint">Tip: Tap <span class="share-icon">⎙</span> then "Add to Home Screen" for the best experience</p>
+        ` : ''}
       </div>
     </div>
   `;
-}
-
-function showIOSInstallOverlay(onClose: () => void): void {
-  const overlay = document.createElement('div');
-  overlay.className = 'ios-install-overlay';
-  overlay.innerHTML = `
-    <div class="ios-install-card">
-      <div class="ios-install-title">Install this App</div>
-      <div class="ios-install-steps">
-        <div class="ios-install-step">
-          <span class="ios-install-step-icon">⎙</span>
-          <span>Tap the Share button below</span>
-        </div>
-        <div class="ios-install-step">
-          <span class="ios-install-step-icon">➕</span>
-          <span>Tap "Add to Home Screen"</span>
-        </div>
-      </div>
-      <button class="button-primary" id="ios-got-it">Got it</button>
-    </div>
-  `;
-  
-  document.body.appendChild(overlay);
-  
-  overlay.querySelector('#ios-got-it')?.addEventListener('click', () => {
-    overlay.remove();
-    onClose();
-  });
-  
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) {
-      overlay.remove();
-      onClose();
-    }
-  });
 }
 
 export function init(callbacks: ScreenCallbacks): void {
-  const installBtn = document.getElementById('install-btn');
-  const skipBtn = document.getElementById('skip-btn');
-  const continueBtn = document.getElementById('continue-btn');
+  const startBtn = document.getElementById('start-btn');
 
-  installBtn?.addEventListener('click', async () => {
-    if (isIOS()) {
-      showIOSInstallOverlay(() => {
-        callbacks.onNavigate('upload');
-      });
-    } else if (deferredPrompt) {
+  startBtn?.addEventListener('click', async () => {
+    // On Android/Chrome, prompt install then continue
+    if (deferredPrompt) {
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       deferredPrompt = null;
-      callbacks.onNavigate('upload');
-    } else {
-      // No install prompt available, just continue
-      callbacks.onNavigate('upload');
     }
-  });
-
-  skipBtn?.addEventListener('click', () => {
-    callbacks.onNavigate('upload');
-  });
-
-  continueBtn?.addEventListener('click', () => {
     callbacks.onNavigate('upload');
   });
 }
