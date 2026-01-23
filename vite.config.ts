@@ -7,11 +7,11 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'PWA App',
-        short_name: 'PWA',
-        description: 'A Progressive Web App built with Vite',
-        theme_color: '#3b82f6',
-        background_color: '#ffffff',
+        name: 'AI Video',
+        short_name: 'AI Video',
+        description: 'Turn your pictures into fun AI videos',
+        theme_color: '#F2F2F7',
+        background_color: '#F2F2F7',
         display: 'standalone',
         icons: [
           {
