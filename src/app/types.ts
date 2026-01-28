@@ -1,10 +1,12 @@
 // Screen types for onboarding
-export type OnboardingStep = 'intro' | 'upload' | 'payment' | 'success';
+export type OnboardingStep = 'intro' | 'upload' | 'payment' | 'success' | 'generating' | 'result';
 
 export interface OnboardingState {
   currentStep: OnboardingStep;
   uploadedImage: string | null;
   filterId: string;
+  generatedVideo: string | null;
+  videoId: string | null;
 }
 
 export interface OnboardingCallbacks {
@@ -12,8 +14,24 @@ export interface OnboardingCallbacks {
   onSetImage: (imageData: string) => void;
   getImage: () => string | null;
   onComplete: () => void;
-  onSetVideo?: (videoUrl: string) => void;
+  onSetVideo?: (videoUrl: string, videoId: string) => void;
   getVideo?: () => string | null;
+}
+
+// Video generation
+export type VideoModel = 'ltx-2' | 'veo3' | 'wan-25';
+
+export interface VideoGenerationOptions {
+  model?: VideoModel;
+  prompt?: string;
+  duration?: number;
+  resolution?: string;
+}
+
+export interface VideoResult {
+  videoUrl: string;
+  videoId: string;
+  model: string;
 }
 
 // Filter configuration
@@ -29,10 +47,15 @@ export interface FilterConfig {
   likes: number;
   isNew?: boolean;
   isPremium?: boolean;
-  aiEnabled?: boolean;  // If true, uses LTX-Video for real AI generation
+  aiEnabled?: boolean;
   price: number;
   introTitle: string;
   introSubtitle: string;
+  // Video generation settings
+  videoPrompt?: string;
+  videoModel?: VideoModel;
+  videoDuration?: number;
+  videoResolution?: string;
 }
 
 export interface FilterSection {

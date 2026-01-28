@@ -1050,3 +1050,114 @@ body {
   background: #48484A;
   cursor: not-allowed;
 }
+
+/* ============================================
+   VIDEO GENERATION SCREENS
+   ============================================ */
+
+/* Generating Screen */
+.generating-animation {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.generating-icon {
+  font-size: 48px;
+  z-index: 10;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #007AFF;
+  animation: pulse-ring 2s ease-out infinite;
+  opacity: 0;
+}
+
+.pulse-ring.delay-1 {
+  animation-delay: 0.5s;
+}
+
+.pulse-ring.delay-2 {
+  animation-delay: 1s;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.progress-bar {
+  width: 100%;
+  max-width: 280px;
+  height: 4px;
+  background: #2C2C2E;
+  border-radius: 2px;
+  margin-top: 24px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #007AFF, #5AC8FA);
+  border-radius: 2px;
+  transition: width 0.3s ease-out;
+}
+
+/* Result Screen */
+.video-container {
+  margin-top: 24px;
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 9/16;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #1C1C1E;
+}
+
+.result-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+.button-ghost {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: #8E8E93;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  touch-action: manipulation;
+  font-family: var(--font-system);
+}
+
+.button-ghost:active {
+  color: #AEAEB2;
+}
+
+.screen-content.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

@@ -17,7 +17,7 @@ export function render(imageData: string | null, isPaid: boolean): string {
             </svg>
           </div>
           <h1 class="title-large">Payment Successful!</h1>
-          <p class="body-text">You now have 15 credits!</p>
+          <p class="body-text">Generating your AI video...</p>
           <div style="margin-top: 32px;">
             <img src="${imageData}" alt="Your photo" class="image-preview image-clear">
           </div>
@@ -31,7 +31,7 @@ export function render(imageData: string | null, isPaid: boolean): string {
       </div>
       <div class="screen-footer">
         ${isPaid ? `
-          <button class="button-primary" id="done-btn">Continue to Home</button>
+          <button class="button-primary" id="generate-btn">Generate Video</button>
         ` : `
           ${applePaySupported ? `
             <button class="apple-pay-button" id="pay-btn"></button>
@@ -52,7 +52,7 @@ export function render(imageData: string | null, isPaid: boolean): string {
 
 export function init(callbacks: OnboardingCallbacks): void {
   const payBtn = document.getElementById('pay-btn');
-  const doneBtn = document.getElementById('done-btn');
+  const generateBtn = document.getElementById('generate-btn');
   const backBtn = document.getElementById('back-btn');
   const backBtnFooter = document.getElementById('back-btn-footer');
 
@@ -79,8 +79,8 @@ export function init(callbacks: OnboardingCallbacks): void {
     });
   });
 
-  doneBtn?.addEventListener('click', () => {
+  generateBtn?.addEventListener('click', () => {
     haptic('medium');
-    callbacks.onComplete();
+    callbacks.onNavigate('generating');
   });
 }

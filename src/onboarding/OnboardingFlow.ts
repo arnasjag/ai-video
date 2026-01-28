@@ -4,11 +4,15 @@ import { store } from '../app/Store';
 import * as IntroScreen from './screens/IntroScreen';
 import * as UploadScreen from './screens/UploadScreen';
 import * as PaymentScreen from './screens/PaymentScreen';
+import * as GeneratingScreen from './screens/GeneratingScreen';
+import * as ResultScreen from './screens/ResultScreen';
 
 export class OnboardingFlow {
   private container: HTMLElement;
   private currentStep: OnboardingStep = 'intro';
   private uploadedImage: string | null = null;
+  private generatedVideo: string | null = null;
+  private videoId: string | null = null;
   private filterId: string | null = null;
 
   constructor(container: HTMLElement) {
@@ -34,6 +38,11 @@ export class OnboardingFlow {
         this.render();
       },
       getImage: () => this.uploadedImage,
+      onSetVideo: (videoUrl: string, videoId: string) => {
+        this.generatedVideo = videoUrl;
+        this.videoId = videoId;
+      },
+      getVideo: () => this.generatedVideo,
       onComplete: () => {
         store.completeOnboarding();
         if (this.filterId) {
@@ -63,6 +72,12 @@ export class OnboardingFlow {
       case 'success':
         html = PaymentScreen.render(this.uploadedImage, true);
         break;
+      case 'generating':
+        html = GeneratingScreen.render();
+        break;
+      case 'result':
+        html = ResultScreen.render(this.generatedVideo);
+        break;
     }
 
     console.log('[OnboardingFlow] Setting innerHTML, length:', html.length);
@@ -83,6 +98,12 @@ export class OnboardingFlow {
       case 'payment':
       case 'success':
         PaymentScreen.init(callbacks);
+        break;
+      case 'generating':
+        GeneratingScreen.init(callbacks);
+        break;
+      case 'result':
+        ResultScreen.init(callbacks, this.generatedVideo);
         break;
     }
   }
