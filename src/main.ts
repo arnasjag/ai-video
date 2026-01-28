@@ -1,7 +1,21 @@
 import { App } from './app/App';
+import { store } from './app/Store';
 import './style.css';
 
 console.log('[main.ts] Script loaded');
+
+// Check for reset parameter - ALWAYS reset onboarding for testing
+function checkResetParam(): void {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('reset')) {
+    console.log('[main.ts] Reset param detected, clearing store...');
+    store.reset();
+    // Remove param from URL without reload
+    const url = new URL(window.location.href);
+    url.searchParams.delete('reset');
+    window.history.replaceState({}, '', url.toString());
+  }
+}
 
 // Clear caches when accessing via Tailscale (development mode)
 async function clearCachesIfDev(): Promise<void> {
@@ -49,7 +63,10 @@ async function requestPersistentStorage(): Promise<void> {
 
 // Initialize app
 async function initApp(): Promise<void> {
-  // Clear caches first if in dev mode
+  // Check reset param first
+  checkResetParam();
+  
+  // Clear caches if in dev mode
   await clearCachesIfDev();
   
   const container = document.querySelector<HTMLElement>('#app');
@@ -68,6 +85,12 @@ async function initApp(): Promise<void> {
     console.error('[main.ts] ERROR: #app container not found!');
   }
 }
+
+// Expose reset for console testing
+(window as any).resetOnboarding = () => {
+  store.reset();
+  window.location.reload();
+};
 
 // Start the app
 initApp();
