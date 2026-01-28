@@ -4,9 +4,7 @@ Generates AI videos from images using fal.ai API
 """
 
 import os
-import io
 import uuid
-import base64
 import logging
 import httpx
 from pathlib import Path
@@ -14,7 +12,6 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 
@@ -25,6 +22,9 @@ logger = logging.getLogger(__name__)
 # fal.ai API configuration
 FAL_KEY = os.environ.get("FAL_KEY")
 FAL_API_BASE = "https://fal.run"
+
+# Kling workflow
+KLING_WORKFLOW = "workflows/Hyperday/klinglowresdemo"
 
 # Available models
 MODELS = {
@@ -64,12 +64,17 @@ app.mount("/videos", StaticFiles(directory=str(VIDEOS_DIR)), name="videos")
 
 
 class GenerateRequest(BaseModel):
-    image: str  # base64 data URL or URL
+    image: str
     prompt: str = "Animate this image with natural motion"
     filter_id: str = "default"
-    model: str = "ltx-2"  # ltx-2, veo3, wan-25
+    model: str = "ltx-2"
     duration: Optional[int] = None
     resolution: Optional[str] = None
+
+
+class KlingRequest(BaseModel):
+    image: str
+    workflow: str = KLING_WORKFLOW
 
 
 class GenerateResponse(BaseModel):
@@ -79,12 +84,9 @@ class GenerateResponse(BaseModel):
 
 
 async def upload_image_to_fal(image_data: str) -> str:
-    """Upload base64 image to fal.ai and return URL"""
+    """Prepare image for fal.ai - accepts data URLs directly"""
     if image_data.startswith("http"):
         return image_data
-    
-    # For base64, we need to use fal's file upload
-    # fal.ai accepts data URLs directly in image_url field
     return image_data
 
 
@@ -117,7 +119,7 @@ async def health():
     return {
         "status": "ok",
         "fal_configured": FAL_KEY is not None,
-        "available_models": list(MODELS.keys()),
+        "available_models": list(MODELS.keys()) + ["kling"],
     }
 
 
@@ -126,16 +128,75 @@ async def list_models():
     """List available video generation models"""
     return {
         "models": [
-            {"id": "ltx-2", "name": "LTX Video 2.0 Pro", "price": "/bin/zsh.06-0.24/sec"},
-            {"id": "veo3", "name": "Google Veo 3", "price": "/bin/zsh.20-0.40/sec"},
-            {"id": "wan-25", "name": "Wan 2.5", "price": "/bin/zsh.05-0.15/sec"},
+            {"id": "kling", "name": "Kling (Low Res)", "price": "$0.26/video"},
+            {"id": "ltx-2", "name": "LTX Video 2.0 Pro", "price": "$0.06-0.24/sec"},
+            {"id": "veo3", "name": "Google Veo 3", "price": "$0.20-0.40/sec"},
+            {"id": "wan-25", "name": "Wan 2.5", "price": "$0.05-0.15/sec"},
         ]
     }
 
 
+@app.post("/generate-kling", response_model=GenerateResponse)
+async def generate_kling_video(req: KlingRequest):
+    """Generate video using Kling workflow via fal.ai"""
+    try:
+        logger.info(f"Generating Kling video with workflow: {req.workflow}")
+        
+        # Prepare image URL
+        image_url = await upload_image_to_fal(req.image)
+        
+        # Call fal.ai Kling workflow
+        payload = {
+            "image_url": image_url
+        }
+        
+        result = await call_fal_api(req.workflow, payload)
+        logger.info(f"Kling result keys: {result.keys()}")
+        
+        # Extract video URL - handle different response formats
+        video_url = None
+        if "video" in result:
+            video_data = result["video"]
+            if isinstance(video_data, dict):
+                video_url = video_data.get("url")
+            elif isinstance(video_data, str):
+                video_url = video_data
+        elif "video_url" in result:
+            video_url = result["video_url"]
+        elif "output" in result:
+            video_url = result["output"]
+        
+        if not video_url:
+            logger.error(f"No video URL in Kling response: {result}")
+            raise HTTPException(status_code=500, detail="No video URL in Kling response")
+        
+        # Download and save locally
+        video_id = str(uuid.uuid4())
+        video_path = VIDEOS_DIR / f"{video_id}.mp4"
+        
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            logger.info(f"Downloading video from: {video_url}")
+            video_response = await client.get(video_url)
+            video_path.write_bytes(video_response.content)
+        
+        logger.info(f"Kling video saved: {video_path}")
+        
+        return GenerateResponse(
+            video_url=f"/videos/{video_id}.mp4",
+            video_id=video_id,
+            model="kling",
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Kling generation error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/generate", response_model=GenerateResponse)
 async def generate_video(req: GenerateRequest):
-    """Generate a video from an image using fal.ai"""
+    """Generate a video from an image using fal.ai models"""
     try:
         if req.model not in MODELS:
             raise HTTPException(status_code=400, detail=f"Unknown model: {req.model}")
@@ -155,7 +216,7 @@ async def generate_video(req: GenerateRequest):
         if req.model == "ltx-2":
             payload["duration"] = req.duration or model_config["default_duration"]
             payload["resolution"] = req.resolution or model_config["default_resolution"]
-            payload["generate_audio"] = False  # Faster for MVP
+            payload["generate_audio"] = False
         elif req.model == "veo3":
             payload["duration"] = f"{req.duration}s" if req.duration else model_config["default_duration"]
             payload["resolution"] = req.resolution or model_config["default_resolution"]

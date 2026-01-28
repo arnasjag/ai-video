@@ -1161,3 +1161,144 @@ body {
   justify-content: center;
   text-align: center;
 }
+
+/* ============================================
+   PREVIEW SCREEN (Blurred Teaser)
+   ============================================ */
+
+.preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  margin: 24px auto;
+}
+
+.preview-lock-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+}
+
+.lock-icon {
+  font-size: 48px;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+}
+
+.preview-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  padding: 16px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.feature-item {
+  font-size: 14px;
+  color: #34C759;
+}
+
+/* ============================================
+   PAYMENT SCREEN
+   ============================================ */
+
+.payment-summary {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 32px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.payment-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+}
+
+.payment-secure {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #8E8E93;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ============================================
+   ERROR STATES
+   ============================================ */
+
+.error-container {
+  width: 100%;
+  max-width: 280px;
+  margin-top: 24px;
+}
+
+.error-text {
+  color: #FF3B30;
+  font-size: 15px;
+  margin: 0 0 16px 0;
+  padding: 12px;
+  background: rgba(255, 59, 48, 0.1);
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* ============================================
+   iOS DOWNLOAD MODAL
+   ============================================ */
+
+.ios-download-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 24px;
+}
+
+.ios-download-modal {
+  background: #1C1C1E;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+}
+
+.ios-download-video {
+  width: 100%;
+  aspect-ratio: 9/16;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  background: #000;
+}
+
+.ios-download-instructions {
+  margin-bottom: 20px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #fff;
+}
+
+.ios-download-instructions p {
+  margin: 8px 0;
+}
+
+.ios-download-done {
+  width: 100%;
+}

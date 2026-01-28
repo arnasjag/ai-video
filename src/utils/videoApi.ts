@@ -4,9 +4,10 @@
  */
 
 const API_URL = 'http://100.71.249.98:8001';
+const KLING_WORKFLOW = 'workflows/Hyperday/klinglowresdemo';
 
 // Available video generation models
-export type VideoModel = 'ltx-2' | 'veo3' | 'wan-25';
+export type VideoModel = 'ltx-2' | 'veo3' | 'wan-25' | 'kling';
 
 export interface VideoModelInfo {
   id: VideoModel;
@@ -15,7 +16,7 @@ export interface VideoModelInfo {
 }
 
 export interface GenerateVideoRequest {
-  image: string;  // base64 data URL or URL
+  image: string;
   prompt?: string;
   filter_id?: string;
   model?: VideoModel;
@@ -40,7 +41,44 @@ export interface ModelsResponse {
 }
 
 /**
- * Generate a video from an image using fal.ai
+ * Generate video using fal.ai Kling workflow
+ * This is the primary function for the new onboarding flow
+ */
+export async function generateVideoKling(
+  imageData: string,
+  options: { signal?: AbortSignal } = {}
+): Promise<{ videoUrl: string; videoId: string; model: string }> {
+  const response = await fetch(`${API_URL}/generate-kling`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      image: imageData,
+      workflow: KLING_WORKFLOW,
+    }),
+    signal: options.signal,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+    throw new Error(error.detail || `HTTP ${response.status}`);
+  }
+
+  const data: GenerateVideoResponse = await response.json();
+  const videoUrl = data.video_url.startsWith('http') 
+    ? data.video_url 
+    : `${API_URL}${data.video_url}`;
+    
+  return {
+    videoUrl,
+    videoId: data.video_id,
+    model: data.model || 'kling',
+  };
+}
+
+/**
+ * Generate video using other fal.ai models (ltx-2, veo3, wan-25)
  */
 export async function generateVideo(
   imageData: string,
@@ -50,6 +88,7 @@ export async function generateVideo(
     model?: VideoModel;
     duration?: number;
     resolution?: string;
+    signal?: AbortSignal;
   } = {}
 ): Promise<{ videoUrl: string; videoId: string; model: string }> {
   const {
@@ -58,6 +97,7 @@ export async function generateVideo(
     model = 'ltx-2',
     duration,
     resolution,
+    signal,
   } = options;
 
   const body: GenerateVideoRequest = {
@@ -76,6 +116,7 @@ export async function generateVideo(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
+    signal,
   });
 
   if (!response.ok) {

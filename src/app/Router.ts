@@ -1,5 +1,7 @@
+import type { OnboardingStep } from './types';
+
 export type Route =
-  | { page: 'onboarding'; step: 'intro' | 'upload' | 'payment' | 'success' }
+  | { page: 'onboarding'; step: OnboardingStep }
   | { page: 'home' }
   | { page: 'filter'; filterId: string }
   | { page: 'create' }
@@ -11,14 +13,10 @@ class Router {
   private listeners: Set<RouteChangeListener> = new Set();
   private currentRoute: Route = { page: 'home' };
   private isBackNavigation: boolean = false;
-  
 
   constructor() {
-    
     window.addEventListener('popstate', () => {
-      // popstate fires on back/forward - check if we went back
-      
-      this.isBackNavigation = true;  // popstate typically means back
+      this.isBackNavigation = true;
       this.handleRouteChange();
     });
     
@@ -31,8 +29,8 @@ class Router {
     const parts = hash.split('/').filter(Boolean);
 
     if (parts[0] === 'onboarding') {
-      const step = parts[1] as 'intro' | 'upload' | 'payment' | 'success';
-      return { page: 'onboarding', step: step || 'intro' };
+      const step = (parts[1] || 'intro') as OnboardingStep;
+      return { page: 'onboarding', step };
     }
     if (parts[0] === 'filter' && parts[1]) {
       return { page: 'filter', filterId: parts[1] };
@@ -55,7 +53,6 @@ class Router {
     document.documentElement.classList.add(isBack ? 'nav-back' : 'nav-forward');
     
     // Use View Transitions API only for back navigation (slide)
-    // Forward navigation should be instant/fade
     if (document.startViewTransition && isBack) {
       document.startViewTransition(() => {
         this.currentRoute = newRoute;
@@ -66,7 +63,6 @@ class Router {
       this.notifyListeners(isBack);
     }
     
-    // Reset back navigation flag
     this.isBackNavigation = false;
   }
 

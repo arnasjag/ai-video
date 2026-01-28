@@ -1,5 +1,12 @@
-// Screen types for onboarding
-export type OnboardingStep = 'intro' | 'upload' | 'payment' | 'success' | 'generating' | 'result';
+// Screen types for onboarding - NEW FLOW
+export type OnboardingStep = 
+  | 'intro' 
+  | 'upload' 
+  | 'fakeProcessing'  // Fake loading animation (no API call)
+  | 'preview'         // Blurred image teaser
+  | 'payment' 
+  | 'processing'      // Real API call to fal.ai
+  | 'result';
 
 export interface OnboardingState {
   currentStep: OnboardingStep;
@@ -19,13 +26,14 @@ export interface OnboardingCallbacks {
 }
 
 // Video generation
-export type VideoModel = 'ltx-2' | 'veo3' | 'wan-25';
+export type VideoModel = 'ltx-2' | 'veo3' | 'wan-25' | 'kling';
 
 export interface VideoGenerationOptions {
   model?: VideoModel;
   prompt?: string;
   duration?: number;
   resolution?: string;
+  signal?: AbortSignal;
 }
 
 export interface VideoResult {

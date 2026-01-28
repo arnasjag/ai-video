@@ -3,8 +3,10 @@ import { router } from '../app/Router';
 import { store } from '../app/Store';
 import * as IntroScreen from './screens/IntroScreen';
 import * as UploadScreen from './screens/UploadScreen';
+import * as FakeProcessingScreen from './screens/FakeProcessingScreen';
+import * as PreviewScreen from './screens/PreviewScreen';
 import * as PaymentScreen from './screens/PaymentScreen';
-import * as GeneratingScreen from './screens/GeneratingScreen';
+import * as ProcessingScreen from './screens/ProcessingScreen';
 import * as ResultScreen from './screens/ResultScreen';
 
 export class OnboardingFlow {
@@ -16,13 +18,11 @@ export class OnboardingFlow {
   private filterId: string | null = null;
 
   constructor(container: HTMLElement) {
-    console.log('[OnboardingFlow] constructor called, container:', container);
     this.container = container;
     this.filterId = sessionStorage.getItem('currentFilterId');
   }
 
   setStep(step: OnboardingStep): void {
-    console.log('[OnboardingFlow] setStep:', step);
     this.currentStep = step;
     this.render();
   }
@@ -30,7 +30,6 @@ export class OnboardingFlow {
   private getCallbacks(): OnboardingCallbacks {
     return {
       onNavigate: (step: OnboardingStep) => {
-        console.log('[OnboardingFlow] onNavigate called with step:', step);
         router.navigate({ page: 'onboarding', step });
       },
       onSetImage: (imageData: string) => {
@@ -55,7 +54,6 @@ export class OnboardingFlow {
   }
 
   render(): void {
-    console.log('[OnboardingFlow] render() called, currentStep:', this.currentStep);
     let html = '';
     const callbacks = this.getCallbacks();
 
@@ -66,28 +64,28 @@ export class OnboardingFlow {
       case 'upload':
         html = UploadScreen.render(this.uploadedImage);
         break;
+      case 'fakeProcessing':
+        html = FakeProcessingScreen.render();
+        break;
+      case 'preview':
+        html = PreviewScreen.render(this.uploadedImage);
+        break;
       case 'payment':
-        html = PaymentScreen.render(this.uploadedImage, false);
+        html = PaymentScreen.render();
         break;
-      case 'success':
-        html = PaymentScreen.render(this.uploadedImage, true);
-        break;
-      case 'generating':
-        html = GeneratingScreen.render();
+      case 'processing':
+        html = ProcessingScreen.render();
         break;
       case 'result':
         html = ResultScreen.render(this.generatedVideo);
         break;
     }
 
-    console.log('[OnboardingFlow] Setting innerHTML, length:', html.length);
     this.container.innerHTML = html;
-    console.log('[OnboardingFlow] innerHTML set, calling initCurrentScreen');
     this.initCurrentScreen(callbacks);
   }
 
   private initCurrentScreen(callbacks: OnboardingCallbacks): void {
-    console.log('[OnboardingFlow] initCurrentScreen:', this.currentStep);
     switch (this.currentStep) {
       case 'intro':
         IntroScreen.init(callbacks);
@@ -95,12 +93,17 @@ export class OnboardingFlow {
       case 'upload':
         UploadScreen.init(callbacks);
         break;
+      case 'fakeProcessing':
+        FakeProcessingScreen.init(callbacks);
+        break;
+      case 'preview':
+        PreviewScreen.init(callbacks);
+        break;
       case 'payment':
-      case 'success':
         PaymentScreen.init(callbacks);
         break;
-      case 'generating':
-        GeneratingScreen.init(callbacks);
+      case 'processing':
+        ProcessingScreen.init(callbacks);
         break;
       case 'result':
         ResultScreen.init(callbacks, this.generatedVideo);

@@ -37,7 +37,7 @@ export function init(callbacks: OnboardingCallbacks): void {
   const backBtn = document.getElementById('back-btn');
   const backBtnFooter = document.getElementById('back-btn-footer');
 
-  // Back navigation with haptic
+  // Back navigation
   const goBack = () => {
     haptic('light');
     callbacks.onNavigate('intro');
@@ -45,11 +45,13 @@ export function init(callbacks: OnboardingCallbacks): void {
   backBtn?.addEventListener('click', goBack);
   backBtnFooter?.addEventListener('click', goBack);
 
+  // Upload area click
   uploadArea?.addEventListener('click', () => {
     haptic('light');
     fileInput?.click();
   });
 
+  // File selection
   fileInput?.addEventListener('change', async () => {
     const file = fileInput.files?.[0];
     if (file) {
@@ -59,14 +61,16 @@ export function init(callbacks: OnboardingCallbacks): void {
         callbacks.onSetImage(dataUrl);
       } catch (err) {
         console.error('Failed to read image:', err);
+        alert('Failed to read image. Please try another photo.');
       }
     }
   });
 
+  // Continue button - navigate to fakeProcessing (not payment)
   continueBtn?.addEventListener('click', () => {
     if (callbacks.getImage()) {
       haptic('medium');
-      callbacks.onNavigate('payment');
+      callbacks.onNavigate('fakeProcessing');
     }
   });
 }
