@@ -12,6 +12,8 @@ export interface OnboardingCallbacks {
   onSetImage: (imageData: string) => void;
   getImage: () => string | null;
   onComplete: () => void;
+  onSetVideo?: (videoUrl: string) => void;
+  getVideo?: () => string | null;
 }
 
 // Filter configuration
@@ -27,6 +29,7 @@ export interface FilterConfig {
   likes: number;
   isNew?: boolean;
   isPremium?: boolean;
+  aiEnabled?: boolean;  // If true, uses LTX-Video for real AI generation
   price: number;
   introTitle: string;
   introSubtitle: string;

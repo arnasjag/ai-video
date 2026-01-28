@@ -1,12 +1,14 @@
 import type { OnboardingCallbacks } from '../../app/types';
 import { showPaymentModal } from '../../components/PaymentModal';
 import { store } from '../../app/Store';
+import { haptic, hapticSuccess } from '../../utils/haptic';
 
 export function render(imageData: string | null, isPaid: boolean): string {
   const applePaySupported = CSS.supports('-webkit-appearance', '-apple-pay-button');
-  
+
   return `
     <div class="screen">
+      ${!isPaid ? `<button class="back-btn floating" id="back-btn">←</button>` : ''}
       <div class="screen-content">
         ${isPaid ? `
           <div class="success-checkmark">
@@ -15,13 +17,13 @@ export function render(imageData: string | null, isPaid: boolean): string {
             </svg>
           </div>
           <h1 class="title-large">Payment Successful!</h1>
-          <p class="body-text">Your AI video is being generated</p>
+          <p class="body-text">You now have 15 credits!</p>
           <div style="margin-top: 32px;">
             <img src="${imageData}" alt="Your photo" class="image-preview image-clear">
           </div>
         ` : `
-          <h1 class="title-large">Your AI Video is Ready</h1>
-          <p class="body-text">Pay $9.99 to unlock and download</p>
+          <h1 class="title-large">Unlock Your Creation</h1>
+          <p class="body-text">Pay $9.99 to continue</p>
           <div style="margin-top: 32px;">
             <img src="${imageData}" alt="Preview" class="image-preview image-blurred">
           </div>
@@ -41,6 +43,7 @@ export function render(imageData: string | null, isPaid: boolean): string {
               Pay $9.99
             </button>
           `}
+          <button class="button-secondary" id="back-btn-footer">Go Back</button>
         `}
       </div>
     </div>
@@ -50,19 +53,34 @@ export function render(imageData: string | null, isPaid: boolean): string {
 export function init(callbacks: OnboardingCallbacks): void {
   const payBtn = document.getElementById('pay-btn');
   const doneBtn = document.getElementById('done-btn');
+  const backBtn = document.getElementById('back-btn');
+  const backBtnFooter = document.getElementById('back-btn-footer');
+
+  // Back navigation with haptic
+  const goBack = () => {
+    haptic('light');
+    callbacks.onNavigate('upload');
+  };
+  backBtn?.addEventListener('click', goBack);
+  backBtnFooter?.addEventListener('click', goBack);
 
   payBtn?.addEventListener('click', () => {
+    haptic('medium');
     showPaymentModal({
       amount: '$9.99',
       onComplete: () => {
+        hapticSuccess();
         store.addCredits(15);
         callbacks.onNavigate('success');
       },
-      onCancel: () => {}
+      onCancel: () => {
+        haptic('light');
+      }
     });
   });
 
   doneBtn?.addEventListener('click', () => {
+    haptic('medium');
     callbacks.onComplete();
   });
 }

@@ -2,22 +2,64 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#F2F2F7" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="AI Video" />
     <meta name="description" content="Turn your pictures into fun AI videos" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="format-detection" content="telephone=no" />
+    <!-- Emoji favicon for bookmark icon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>AI Video</title>
     <!-- Add to Homescreen Library -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.5/dist/add-to-homescreen.min.css" />
     <script src="https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.5/dist/add-to-homescreen.min.js"></script>
+    <style>
+      /* Critical: ensure black background covers ENTIRE viewport including outside safe areas */
+      html, body {
+        background: #000 !important;
+        margin: 0;
+        padding: 0;
+      }
+      /* Extend black behind bottom nav area (iOS Safari toolbar region) */
+      body::after {
+        content: '';
+        position: fixed;
+        bottom: -100px;
+        left: 0;
+        right: 0;
+        height: 200px;
+        background: #000;
+        z-index: -1;
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+    <script>
+      // iOS zoom prevention
+      (function() {
+        const meta = document.querySelector('meta[name=viewport]');
+        const base = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+        
+        document.addEventListener('focusin', function(e) {
+          if (e.target.matches && e.target.matches('input, textarea, select')) {
+            meta.setAttribute('content', base);
+          }
+        });
+
+        // Double-tap zoom prevention removed - was blocking button clicks
+
+        // Prevent pinch zoom
+        document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+        document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false });
+        document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { passive: false });
+      })();
+    </script>
   </body>
 </html>

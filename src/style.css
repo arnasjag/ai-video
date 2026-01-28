@@ -18,13 +18,17 @@
 
 body {
   font-family: var(--font-system);
-  background: var(--color-background);
-  color: var(--color-text);
+  background: #000;
+  color: #fff;
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: 100svh; /* Small viewport height as fallback */
+  margin: 0;
+  padding: 0;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 #app {
@@ -97,8 +101,9 @@ body {
 }
 
 .button-primary:active {
-  opacity: 0.8;
-  transform: scale(0.98);
+  transform: scale(0.97);
+  opacity: 0.9;
+  transition: transform 0.1s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.1s ease-out;
 }
 
 .button-primary:disabled {
@@ -181,7 +186,7 @@ body {
   .apple-pay-button {
     -webkit-appearance: -apple-pay-button;
     -apple-pay-button-type: buy;
-    -apple-pay-button-style: black;
+    -apple-pay-button-style: white;
     width: 100%;
     height: 50px;
     border: none;
@@ -699,17 +704,21 @@ body {
 /* Bottom Navigation */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 8px 0;
-  padding-bottom: calc(8px + var(--safe-area-bottom));
+  height: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding-top: 8px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: #000;
   border-top: 1px solid #222;
-  z-index: 100;
+  z-index: 1000;
+  /* Force GPU layer for proper fixed positioning on iOS */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .nav-item {
@@ -908,4 +917,136 @@ body {
 .page-feed, .page-create {
   background: #000;
   color: #fff;
+}
+
+/* ============================================
+   PULL TO REFRESH - iOS Style
+   ============================================ */
+
+.ptr-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+  margin-top: -60px;
+  transform: translateY(0);
+  opacity: 0;
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+  pointer-events: none;
+  position: relative;
+  z-index: 10;
+}
+
+.ptr-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ptr-spinner {
+  color: rgba(255, 255, 255, 0.9);
+  transform: rotate(-90deg);
+}
+
+.ptr-spinner circle {
+  transition: stroke-dashoffset 0.15s ease-out;
+}
+
+.ptr-indicator.refreshing .ptr-spinner {
+  animation: ptr-rotate 1s linear infinite;
+}
+
+.ptr-indicator.refreshing .ptr-spinner circle {
+  stroke-dashoffset: 15 !important;
+  animation: ptr-dash 1s ease-in-out infinite;
+}
+
+@keyframes ptr-rotate {
+  100% { transform: rotate(270deg); }
+}
+
+@keyframes ptr-dash {
+  0% { stroke-dashoffset: 15; }
+  50% { stroke-dashoffset: 5; }
+  100% { stroke-dashoffset: 15; }
+}
+
+/* ============================================
+   ONBOARDING SCREENS
+   ============================================ */
+
+.onboarding-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 60px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+}
+
+.onboarding-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.onboarding-icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+}
+
+.onboarding-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.onboarding-subtitle {
+  font-size: 17px;
+  color: #8E8E93;
+  max-width: 300px;
+  line-height: 1.4;
+}
+
+.onboarding-footer {
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.onboarding-cta {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  background: #007AFF;
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 50px;
+  touch-action: manipulation;
+  position: relative;
+  z-index: 100;
+  font-family: var(--font-system);
+  transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+}
+
+.onboarding-cta:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+.onboarding-cta:disabled {
+  background: #48484A;
+  cursor: not-allowed;
 }

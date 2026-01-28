@@ -5,15 +5,25 @@ export type Route =
   | { page: 'create' }
   | { page: 'feed' };
 
-type RouteChangeListener = (route: Route) => void;
+type RouteChangeListener = (route: Route, isBack: boolean) => void;
 
 class Router {
   private listeners: Set<RouteChangeListener> = new Set();
   private currentRoute: Route = { page: 'home' };
+  private isBackNavigation: boolean = false;
+  
 
   constructor() {
-    window.addEventListener('hashchange', () => this.handleHashChange());
-    this.handleHashChange();
+    
+    window.addEventListener('popstate', () => {
+      // popstate fires on back/forward - check if we went back
+      
+      this.isBackNavigation = true;  // popstate typically means back
+      this.handleRouteChange();
+    });
+    
+    // Handle initial route
+    this.handleRouteChange();
   }
 
   private parseHash(): Route {
@@ -36,9 +46,32 @@ class Router {
     return { page: 'home' };
   }
 
-  private handleHashChange(): void {
-    this.currentRoute = this.parseHash();
-    this.listeners.forEach(l => l(this.currentRoute));
+  private handleRouteChange(): void {
+    const newRoute = this.parseHash();
+    const isBack = this.isBackNavigation;
+    
+    // Set transition class based on direction
+    document.documentElement.classList.remove('nav-forward', 'nav-back');
+    document.documentElement.classList.add(isBack ? 'nav-back' : 'nav-forward');
+    
+    // Use View Transitions API only for back navigation (slide)
+    // Forward navigation should be instant/fade
+    if (document.startViewTransition && isBack) {
+      document.startViewTransition(() => {
+        this.currentRoute = newRoute;
+        this.notifyListeners(isBack);
+      });
+    } else {
+      this.currentRoute = newRoute;
+      this.notifyListeners(isBack);
+    }
+    
+    // Reset back navigation flag
+    this.isBackNavigation = false;
+  }
+
+  private notifyListeners(isBack: boolean): void {
+    this.listeners.forEach(l => l(this.currentRoute, isBack));
   }
 
   getRoute(): Route {
@@ -51,6 +84,7 @@ class Router {
   }
 
   navigate(route: Route): void {
+    this.isBackNavigation = false;
     let hash = '#/';
     if (route.page === 'onboarding') {
       hash = `#/onboarding/${route.step}`;
@@ -60,9 +94,11 @@ class Router {
       hash = `#/${route.page}`;
     }
     window.location.hash = hash;
+    this.handleRouteChange();
   }
 
   back(): void {
+    this.isBackNavigation = true;
     window.history.back();
   }
 }

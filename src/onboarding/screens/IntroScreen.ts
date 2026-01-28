@@ -1,5 +1,6 @@
 import type { OnboardingCallbacks } from '../../app/types';
 import { getFilterById } from '../../data/mockFilters';
+import { haptic } from '../../utils/haptic';
 
 declare global {
   interface Window {
@@ -17,8 +18,13 @@ declare global {
 }
 
 function isStandalone(): boolean {
-  return window.matchMedia('(display-mode: standalone)').matches || 
+  return window.matchMedia('(display-mode: standalone)').matches ||
          (navigator as any).standalone === true;
+}
+
+function isMobileDevice(): boolean {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+         (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
 }
 
 export function render(filterId?: string): string {
@@ -28,35 +34,58 @@ export function render(filterId?: string): string {
   const icon = filter?.icon || '🎬';
 
   return `
-    <div class="screen">
-      <div class="screen-content">
-        <div class="screen-icon">${icon}</div>
-        <h1 class="title-large">${title}</h1>
-        <p class="body-text">${subtitle}</p>
+    <div class="onboarding-screen">
+      <div class="onboarding-content">
+        <div class="onboarding-icon">${icon}</div>
+        <h1 class="onboarding-title">${title}</h1>
+        <p class="onboarding-subtitle">${subtitle}</p>
       </div>
-      <div class="screen-footer">
-        <button class="button-primary" id="start-btn">Get Started</button>
+      <div class="onboarding-footer">
+        <button class="onboarding-cta" id="start-btn">Get Started</button>
       </div>
     </div>
   `;
 }
 
 export function init(callbacks: OnboardingCallbacks): void {
-  // Show add-to-homescreen prompt if not already installed
-  if (!isStandalone() && window.AddToHomeScreen) {
-    window.AddToHomeScreenInstance = window.AddToHomeScreen({
-      appName: 'AI Video',
-      appIconUrl: '/apple-touch-icon.png',
-      assetUrl: 'https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.5/dist/assets/img/',
-      maxModalDisplayCount: 1
-    });
-    window.AddToHomeScreenInstance.show('en');
+  console.log('[IntroScreen] init() called');
+
+  const mobile = isMobileDevice();
+  const standalone = isStandalone();
+  console.log('[IntroScreen] mobile:', mobile, 'standalone:', standalone);
+
+  // Delay AddToHomeScreen prompt to prevent blocking button interaction
+  if (!standalone && mobile && window.AddToHomeScreen) {
+    setTimeout(() => {
+      console.log('[IntroScreen] Showing add-to-homescreen prompt (delayed)');
+      window.AddToHomeScreenInstance = window.AddToHomeScreen({
+        appName: 'AI Video',
+        appIconUrl: '/apple-touch-icon.png',
+        assetUrl: 'https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.5/dist/assets/img/',
+        maxModalDisplayCount: 1
+      });
+      window.AddToHomeScreenInstance.show('en');
+    }, 500);
   }
 
-  document.getElementById('start-btn')?.addEventListener('click', () => {
-    if (window.AddToHomeScreenInstance) {
-      window.AddToHomeScreenInstance.hide();
-    }
-    callbacks.onNavigate('upload');
-  });
+  const startBtn = document.getElementById('start-btn');
+  console.log('[IntroScreen] Button found:', !!startBtn);
+
+  if (startBtn) {
+    startBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Haptic feedback
+      haptic('light');
+      
+      console.log('[IntroScreen] Button clicked, navigating to upload');
+      if (window.AddToHomeScreenInstance) {
+        window.AddToHomeScreenInstance.hide();
+      }
+      callbacks.onNavigate('upload');
+    });
+  } else {
+    console.error('[IntroScreen] ERROR: start-btn not found in DOM!');
+  }
 }

@@ -12,11 +12,13 @@ export class OnboardingFlow {
   private filterId: string | null = null;
 
   constructor(container: HTMLElement) {
+    console.log('[OnboardingFlow] constructor called, container:', container);
     this.container = container;
     this.filterId = sessionStorage.getItem('currentFilterId');
   }
 
   setStep(step: OnboardingStep): void {
+    console.log('[OnboardingFlow] setStep:', step);
     this.currentStep = step;
     this.render();
   }
@@ -24,6 +26,7 @@ export class OnboardingFlow {
   private getCallbacks(): OnboardingCallbacks {
     return {
       onNavigate: (step: OnboardingStep) => {
+        console.log('[OnboardingFlow] onNavigate called with step:', step);
         router.navigate({ page: 'onboarding', step });
       },
       onSetImage: (imageData: string) => {
@@ -43,6 +46,7 @@ export class OnboardingFlow {
   }
 
   render(): void {
+    console.log('[OnboardingFlow] render() called, currentStep:', this.currentStep);
     let html = '';
     const callbacks = this.getCallbacks();
 
@@ -61,11 +65,14 @@ export class OnboardingFlow {
         break;
     }
 
+    console.log('[OnboardingFlow] Setting innerHTML, length:', html.length);
     this.container.innerHTML = html;
+    console.log('[OnboardingFlow] innerHTML set, calling initCurrentScreen');
     this.initCurrentScreen(callbacks);
   }
 
   private initCurrentScreen(callbacks: OnboardingCallbacks): void {
+    console.log('[OnboardingFlow] initCurrentScreen:', this.currentStep);
     switch (this.currentStep) {
       case 'intro':
         IntroScreen.init(callbacks);

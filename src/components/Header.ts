@@ -9,6 +9,7 @@ export function renderHeader(_callbacks: HeaderCallbacks): string {
   const { credits } = store.getState();
   
   return `
+    <div class="status-bar-bg"></div>
     <header class="app-header">
       <div class="header-left">
         <span class="app-title">🎬 AI Video</span>
