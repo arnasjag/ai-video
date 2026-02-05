@@ -43,6 +43,13 @@ export interface VideoResult {
   model: string;
 }
 
+export interface GeneratedVideo {
+  id: string;
+  videoUrl: string;
+  filterId: string;
+  createdAt: number;
+}
+
 // Filter configuration
 export type FilterCategory = 'trending' | 'new' | 'pandora' | 'viral' | 'winter' | 'popular';
 
