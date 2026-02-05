@@ -5,12 +5,9 @@ import { hapticSuccess } from '../../utils/haptic';
 const TIMEOUT_MS = 120000; // 2 minutes
 
 const STATUS_MESSAGES = [
-  'Connecting to AI...',
-  'Uploading your image...',
-  'Generating video frames...',
-  'Processing motion effects...',
-  'Rendering final video...',
-  'Almost there...',
+  'Sending to AI...',
+  'Generating video...',
+  'Downloading result...',
 ];
 
 export function render(): string {
@@ -25,9 +22,14 @@ export function render(): string {
         </div>
         <h1 class="title-large">Creating Your Video</h1>
         <p class="body-text" id="status-text">Preparing...</p>
+        <p class="body-text" style="opacity:0.6;font-size:14px;margin-top:8px">This usually takes about 1 minute</p>
         <div class="progress-bar">
-          <div class="progress-fill" id="progress-fill"></div>
+          <div class="progress-fill" style="width:100%;animation:indeterminate 1.5s ease-in-out infinite"></div>
         </div>
+        <style>
+          @keyframes indeterminate { 0% { transform:translateX(-100%); } 100% { transform:translateX(100%); } }
+        </style>
+        <button class="button-secondary" id="cancel-btn" style="margin-top:24px">Cancel</button>
         <div id="error-container" class="error-container" style="display: none;">
           <p class="error-text" id="error-text"></p>
           <button class="button-primary" id="retry-btn">Try Again</button>
@@ -39,10 +41,10 @@ export function render(): string {
 
 export async function init(callbacks: OnboardingCallbacks): Promise<void> {
   const statusText = document.getElementById('status-text');
-  const progressFill = document.getElementById('progress-fill');
   const errorContainer = document.getElementById('error-container');
   const errorText = document.getElementById('error-text');
   const retryBtn = document.getElementById('retry-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
   
   const imageData = callbacks.getImage();
   if (!imageData) {
@@ -50,27 +52,17 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
     return;
   }
 
-  let progressInterval: number | undefined;
   let statusInterval: number | undefined;
   let abortController: AbortController | undefined;
 
   const startGeneration = async () => {
     // Reset UI
     if (errorContainer) errorContainer.style.display = 'none';
-    if (progressFill) progressFill.style.width = '0%';
     if (statusText) statusText.textContent = 'Preparing...';
     
     // Create new abort controller
     abortController = new AbortController();
     
-    // Animate progress bar slowly (real processing takes 30-60s)
-    let progress = 0;
-    progressInterval = window.setInterval(() => {
-      progress += Math.random() * 3;
-      if (progress > 85) progress = 85; // Cap at 85% until done
-      if (progressFill) progressFill.style.width = `${progress}%`;
-    }, 1000);
-
     // Cycle through status messages
     let msgIndex = 0;
     statusInterval = window.setInterval(() => {
@@ -89,10 +81,8 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
       });
 
       clearTimeout(timeoutId);
-      clearInterval(progressInterval);
       clearInterval(statusInterval);
       
-      if (progressFill) progressFill.style.width = '100%';
       if (statusText) statusText.textContent = 'Done!';
       
       hapticSuccess();
@@ -108,7 +98,6 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
       
     } catch (error) {
       clearTimeout(timeoutId);
-      if (progressInterval) clearInterval(progressInterval);
       if (statusInterval) clearInterval(statusInterval);
       
       const message = error instanceof Error ? error.message : 'Generation failed';
@@ -121,7 +110,6 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
       }
       if (errorContainer) errorContainer.style.display = 'block';
       if (statusText) statusText.textContent = 'Generation failed';
-      if (progressFill) progressFill.style.width = '0%';
     }
   };
 
@@ -131,5 +119,10 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
   // Retry handler
   retryBtn?.addEventListener('click', async () => {
     await startGeneration();
+  });
+
+  cancelBtn?.addEventListener('click', () => {
+    abortController?.abort();
+    callbacks.onNavigate('upload');
   });
 }
