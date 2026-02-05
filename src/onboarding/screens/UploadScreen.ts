@@ -1,5 +1,5 @@
 import type { OnboardingCallbacks } from '../../app/types';
-import { readFileAsDataUrl } from '../../utils/imageUtils';
+import { compressImage, readFileAsDataUrl, validateFile } from '../../utils/imageUtils';
 import { haptic, hapticSuccess } from '../../utils/haptic';
 
 export function render(imageData: string | null): string {
@@ -55,11 +55,24 @@ export function init(callbacks: OnboardingCallbacks): void {
   fileInput?.addEventListener('change', async () => {
     const file = fileInput.files?.[0];
     if (file) {
+      const validationError = validateFile(file);
+      if (validationError) {
+        alert(validationError);
+        return;
+      }
+      const previousUploadHtml = uploadArea?.innerHTML ?? '';
       try {
         const dataUrl = await readFileAsDataUrl(file);
+        if (uploadArea) {
+          uploadArea.innerHTML = '<span class="upload-text">Optimizing...</span>';
+        }
+        const compressedDataUrl = await compressImage(dataUrl);
         hapticSuccess();
-        callbacks.onSetImage(dataUrl);
+        callbacks.onSetImage(compressedDataUrl);
       } catch (err) {
+        if (uploadArea) {
+          uploadArea.innerHTML = previousUploadHtml;
+        }
         console.error('Failed to read image:', err);
         alert('Failed to read image. Please try another photo.');
       }
