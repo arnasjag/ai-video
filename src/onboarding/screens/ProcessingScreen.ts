@@ -1,5 +1,5 @@
 import type { OnboardingCallbacks } from '../../app/types';
-import { generateVideoKling } from '../../utils/videoApi';
+import { videoService } from '../../services';
 import { hapticSuccess } from '../../utils/haptic';
 
 const TIMEOUT_MS = 120000; // 2 minutes
@@ -84,7 +84,7 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
     const timeoutId = setTimeout(() => abortController?.abort(), TIMEOUT_MS);
 
     try {
-      const result = await generateVideoKling(imageData, { 
+      const result = await videoService.generate(imageData, { 
         signal: abortController.signal 
       });
 
