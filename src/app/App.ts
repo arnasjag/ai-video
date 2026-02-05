@@ -1,3 +1,4 @@
+import type { OnboardingStep } from "./types";
 import { router, type Route } from './Router';
 import { store } from './Store';
 import { OnboardingFlow } from '../onboarding/OnboardingFlow';
@@ -94,7 +95,7 @@ export class App {
     this.currentPage = routeKey;
   }
 
-  private renderOnboarding(step: 'intro' | 'upload' | 'payment' | 'success'): void {
+  private renderOnboarding(step: OnboardingStep): void {
     console.log('[App] renderOnboarding:', step);
     if (!this.onboardingFlow) {
       console.log('[App] Creating new OnboardingFlow');

@@ -23,6 +23,7 @@ export interface OnboardingCallbacks {
   onComplete: () => void;
   onSetVideo?: (videoUrl: string, videoId: string) => void;
   getVideo?: () => string | null;
+  getVideoId?: () => string | null;
 }
 
 // Video generation
