@@ -1,6 +1,7 @@
 import type { OnboardingStep, OnboardingCallbacks } from '../app/types';
 import { router } from '../app/Router';
 import { store } from '../app/Store';
+import { videoService } from '../services';
 import * as IntroScreen from './screens/IntroScreen';
 import * as UploadScreen from './screens/UploadScreen';
 import * as FakeProcessingScreen from './screens/FakeProcessingScreen';
@@ -16,10 +17,36 @@ export class OnboardingFlow {
   private generatedVideo: string | null = null;
   private videoId: string | null = null;
   private filterId: string | null = null;
+  private backendAvailable: boolean = true;
 
   constructor(container: HTMLElement) {
     this.container = container;
     this.filterId = sessionStorage.getItem('currentFilterId');
+    this.checkBackend();
+  }
+
+  private async checkBackend(): Promise<void> {
+    this.backendAvailable = await videoService.checkHealth();
+    if (!this.backendAvailable && this.currentStep === 'intro') {
+      this.showBackendWarning();
+    }
+  }
+
+  private showBackendWarning(): void {
+    const existing = this.container.querySelector('.backend-warning');
+    if (existing) return;
+    const warning = document.createElement('div');
+    warning.className = 'backend-warning';
+    warning.style.cssText = 'background:#ff9800;color:#000;padding:8px 16px;text-align:center;font-size:13px;position:fixed;top:0;left:0;right:0;z-index:100';
+    warning.textContent = '⚠ Video generation temporarily unavailable';
+    this.container.prepend(warning);
+
+    // Disable CTA button
+    const cta = this.container.querySelector('.onboarding-cta') as HTMLButtonElement | null;
+    if (cta) {
+      cta.disabled = true;
+      cta.style.opacity = '0.5';
+    }
   }
 
   setStep(step: OnboardingStep): void {
@@ -84,6 +111,11 @@ export class OnboardingFlow {
 
     this.container.innerHTML = html;
     this.initCurrentScreen(callbacks);
+
+    // Show warning if backend is down
+    if (!this.backendAvailable && this.currentStep === 'intro') {
+      this.showBackendWarning();
+    }
   }
 
   private initCurrentScreen(callbacks: OnboardingCallbacks): void {
