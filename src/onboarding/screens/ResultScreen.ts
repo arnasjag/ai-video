@@ -1,4 +1,5 @@
 import type { OnboardingCallbacks } from '../../app/types';
+import { store } from '../../app/Store';
 import { browser } from '../../utils/browserUtils';
 import { haptic, hapticSuccess } from '../../utils/haptic';
 
@@ -42,6 +43,7 @@ export function render(videoUrl: string | null): string {
         <button class="button-secondary" id="share-btn">
           📤 Share
         </button>
+        <button class="button-secondary" id="another-btn">🎬 Create Another Video</button>
         <button class="button-ghost" id="done-btn">Continue to App</button>
       </div>
     </div>
@@ -51,10 +53,21 @@ export function render(videoUrl: string | null): string {
 export function init(callbacks: OnboardingCallbacks, videoUrl: string | null): void {
   const downloadBtn = document.getElementById('download-btn');
   const shareBtn = document.getElementById('share-btn');
+  const anotherBtn = document.getElementById('another-btn');
   const doneBtn = document.getElementById('done-btn');
   const retryBtn = document.getElementById('retry-btn');
   const video = document.querySelector('.result-video') as HTMLVideoElement;
-  
+
+  if (videoUrl) {
+    const now = Date.now();
+    store.addGeneratedVideo({
+      id: now.toString(),
+      videoUrl,
+      filterId: sessionStorage.getItem('currentFilterId') || 'default',
+      createdAt: now
+    });
+  }
+
   const browserInfo = browser();
 
   // Download handler
@@ -108,6 +121,12 @@ export function init(callbacks: OnboardingCallbacks, videoUrl: string | null): v
   doneBtn?.addEventListener('click', () => {
     haptic('light');
     callbacks.onComplete();
+  });
+
+  // Create another handler
+  anotherBtn?.addEventListener('click', () => {
+    haptic('medium');
+    callbacks.onNavigate('upload');
   });
 
   // Retry handler (if no video)

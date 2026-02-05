@@ -1,15 +1,19 @@
+import type { GeneratedVideo } from './types';
+
 const STORAGE_KEY = 'ai-video-app-store';
 
 export interface StoreState {
   credits: number;
   hasCompletedOnboarding: boolean;
   unlockedFilters: string[];
+  generatedVideos: GeneratedVideo[];
 }
 
 const defaultState: StoreState = {
   credits: 0,
   hasCompletedOnboarding: false,
-  unlockedFilters: []
+  unlockedFilters: [],
+  generatedVideos: []
 };
 
 class Store {
@@ -42,6 +46,10 @@ class Store {
 
   getState(): StoreState {
     return this.state;
+  }
+
+  getGeneratedVideos(): GeneratedVideo[] {
+    return this.state.generatedVideos;
   }
 
   subscribe(listener: () => void): () => void {
@@ -86,6 +94,12 @@ class Store {
 
   isFilterUnlocked(filterId: string): boolean {
     return this.state.unlockedFilters.includes(filterId);
+  }
+
+  addGeneratedVideo(video: GeneratedVideo): void {
+    this.state.generatedVideos.push(video);
+    this.save();
+    this.notify();
   }
 
   // For testing
