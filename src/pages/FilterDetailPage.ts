@@ -22,7 +22,7 @@ export function render(filterId: string): string {
   return `
     <div class="page page-filter">
       <div class="filter-hero">
-        <img src="${filter.previewImage}" alt="${filter.name}" class="filter-hero-image" />
+        <img src="${filter.previewImage}" alt="${filter.name}" class="filter-hero-image" loading="lazy" decoding="async" />
         <button class="back-btn floating" id="back-btn">←</button>
       </div>
       <div class="filter-detail-content">

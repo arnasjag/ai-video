@@ -16,6 +16,7 @@ export function renderFilterCard(filter: FilterConfig): string {
           alt="${filter.name}" 
           class="filter-card-image"
           loading="lazy"
+          decoding="async"
         />
         ${filter.isPremium ? '<span class="filter-badge premium">👑</span>' : ''}
         ${filter.isNew ? '<span class="filter-badge new">New</span>' : ''}
