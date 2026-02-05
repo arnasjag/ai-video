@@ -1,11 +1,12 @@
 import type { OnboardingCallbacks } from '../../app/types';
+import { hapticSuccess } from '../../utils/haptic';
 
 const FAKE_DURATION = 4000; // 4 seconds
 
 const STATUS_MESSAGES = [
-  'Analyzing your photo...',
-  'Detecting features...',
-  'Preparing AI transformation...',
+  'Analyzing composition...',
+  'Detecting motion paths...',
+  'Preparing your style...',
   'Almost ready...',
 ];
 
@@ -72,6 +73,7 @@ export function init(callbacks: OnboardingCallbacks): void {
   // Navigate to preview after fake duration
   setTimeout(() => {
     clearInterval(statusInterval);
+    hapticSuccess();
     callbacks.onNavigate('preview');
   }, FAKE_DURATION);
 }
