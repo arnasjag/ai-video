@@ -1,8 +1,10 @@
 import type { OnboardingCallbacks } from '../../app/types';
 import { videoService } from '../../services';
+import { VideoApiError } from '../../utils/videoApi';
 import { hapticSuccess } from '../../utils/haptic';
 
 const TIMEOUT_MS = 120000; // 2 minutes
+const MAX_RETRIES = 2;
 
 const STATUS_MESSAGES = [
   'Sending to AI...',
@@ -43,7 +45,7 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
   const statusText = document.getElementById('status-text');
   const errorContainer = document.getElementById('error-container');
   const errorText = document.getElementById('error-text');
-  const retryBtn = document.getElementById('retry-btn');
+  const retryBtn = document.getElementById('retry-btn') as HTMLButtonElement | null;
   const cancelBtn = document.getElementById('cancel-btn');
   
   const imageData = callbacks.getImage();
@@ -54,8 +56,29 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
 
   let statusInterval: number | undefined;
   let abortController: AbortController | undefined;
+  let retryCount = 0;
+
+  const showError = (message: string) => {
+    if (errorText) errorText.textContent = message;
+    if (errorContainer) errorContainer.style.display = 'block';
+    if (statusText) statusText.textContent = 'Generation failed';
+
+    if (retryBtn) {
+      if (retryCount >= MAX_RETRIES) {
+        retryBtn.textContent = 'Go Back';
+      } else {
+        retryBtn.textContent = 'Try Again';
+      }
+    }
+  };
 
   const startGeneration = async () => {
+    // Network check
+    if (!navigator.onLine) {
+      showError('No internet connection');
+      return;
+    }
+
     // Reset UI
     if (errorContainer) errorContainer.style.display = 'none';
     if (statusText) statusText.textContent = 'Preparing...';
@@ -100,16 +123,14 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
       clearTimeout(timeoutId);
       if (statusInterval) clearInterval(statusInterval);
       
-      const message = error instanceof Error ? error.message : 'Generation failed';
-      const isTimeout = error instanceof Error && error.name === 'AbortError';
-      
-      if (errorText) {
-        errorText.textContent = isTimeout 
-          ? 'Request timed out. Please try again.' 
-          : `Error: ${message}`;
+      retryCount++;
+
+      if (error instanceof VideoApiError) {
+        showError(error.message);
+      } else {
+        const message = error instanceof Error ? error.message : 'Generation failed';
+        showError(message);
       }
-      if (errorContainer) errorContainer.style.display = 'block';
-      if (statusText) statusText.textContent = 'Generation failed';
     }
   };
 
@@ -118,7 +139,11 @@ export async function init(callbacks: OnboardingCallbacks): Promise<void> {
 
   // Retry handler
   retryBtn?.addEventListener('click', async () => {
-    await startGeneration();
+    if (retryCount >= MAX_RETRIES) {
+      callbacks.onNavigate('upload');
+    } else {
+      await startGeneration();
+    }
   });
 
   cancelBtn?.addEventListener('click', () => {
