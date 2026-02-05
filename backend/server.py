@@ -4,6 +4,7 @@ Generates AI videos from images using fal.ai API
 """
 
 import os
+import time
 import uuid
 import logging
 import httpx
@@ -25,6 +26,10 @@ FAL_API_BASE = "https://fal.run"
 
 # Kling workflow
 KLING_WORKFLOW = "workflows/Hyperday/klinglowresdemo"
+
+# Cleanup config
+MAX_VIDEOS = 100
+MAX_AGE_HOURS = 24
 
 # Available models
 MODELS = {
@@ -61,6 +66,44 @@ app.add_middleware(
 VIDEOS_DIR = Path(__file__).parent / "generated_videos"
 VIDEOS_DIR.mkdir(exist_ok=True)
 app.mount("/videos", StaticFiles(directory=str(VIDEOS_DIR)), name="videos")
+
+
+def cleanup_videos() -> None:
+    """Delete old videos and enforce max count."""
+    now = time.time()
+    max_age_seconds = MAX_AGE_HOURS * 3600
+    videos = sorted(VIDEOS_DIR.glob("*.mp4"), key=lambda p: p.stat().st_mtime)
+
+    # Delete videos older than MAX_AGE_HOURS
+    deleted_old = 0
+    for video in list(videos):
+        age = now - video.stat().st_mtime
+        if age > max_age_seconds:
+            video.unlink()
+            videos.remove(video)
+            deleted_old += 1
+
+    if deleted_old:
+        logger.info(f"Cleanup: deleted {deleted_old} videos older than {MAX_AGE_HOURS}h")
+
+    # Enforce max count (delete oldest first)
+    deleted_excess = 0
+    while len(videos) > MAX_VIDEOS:
+        oldest = videos.pop(0)
+        oldest.unlink()
+        deleted_excess += 1
+
+    if deleted_excess:
+        logger.info(f"Cleanup: deleted {deleted_excess} excess videos (max {MAX_VIDEOS})")
+
+    if not deleted_old and not deleted_excess:
+        logger.info(f"Cleanup: nothing to delete ({len(videos)} videos on disk)")
+
+
+@app.on_event("startup")
+async def startup_cleanup():
+    """Run cleanup on server startup."""
+    cleanup_videos()
 
 
 class GenerateRequest(BaseModel):
