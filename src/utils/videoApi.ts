@@ -40,6 +40,17 @@ export interface ModelsResponse {
   models: VideoModelInfo[];
 }
 
+export type VideoApiErrorCode = 'network' | 'timeout' | 'server' | 'api' | 'unknown';
+
+export class VideoApiError extends Error {
+  readonly code: VideoApiErrorCode;
+  constructor(message: string, code: VideoApiErrorCode) {
+    super(message);
+    this.name = 'VideoApiError';
+    this.code = code;
+  }
+}
+
 /**
  * Generate video using fal.ai Kling workflow
  * This is the primary function for the new onboarding flow
@@ -48,21 +59,34 @@ export async function generateVideoKling(
   imageData: string,
   options: { signal?: AbortSignal } = {}
 ): Promise<{ videoUrl: string; videoId: string; model: string }> {
-  const response = await fetch(`${API_URL}/generate-kling`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      image: imageData,
-      workflow: KLING_WORKFLOW,
-    }),
-    signal: options.signal,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/generate-kling`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageData,
+        workflow: KLING_WORKFLOW,
+      }),
+      signal: options.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new VideoApiError('Generation took too long', 'timeout');
+    }
+    throw new VideoApiError('No internet connection', 'network');
+  }
 
+  if (response.status >= 500) {
+    throw new VideoApiError('Server is busy, try again', 'server');
+  }
+  if (response.status >= 400) {
+    throw new VideoApiError('Could not process this image', 'api');
+  }
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-    throw new Error(error.detail || `HTTP ${response.status}`);
+    throw new VideoApiError('Generation failed', 'unknown');
   }
 
   const data: GenerateVideoResponse = await response.json();
