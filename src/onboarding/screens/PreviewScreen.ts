@@ -6,12 +6,12 @@ export function render(imageData: string | null): string {
     <div class="screen">
       <button class="back-btn floating" id="back-btn">←</button>
       <div class="screen-content">
-        <h1 class="title-large">Your Video is Ready!</h1>
-        <p class="body-text">Unlock to download your AI creation</p>
+        <h1 class="title-large">Preview Ready</h1>
+        <p class="body-text">Your AI style has been prepared</p>
         
         <div class="preview-container">
           ${imageData ? `
-            <img src="${imageData}" alt="Preview" class="image-preview image-blurred">
+            <img src="${imageData}" alt="Preview" class="image-preview" style="filter: blur(12px);">
             <div class="preview-lock-overlay">
               <span class="lock-icon">🔒</span>
             </div>
@@ -19,8 +19,8 @@ export function render(imageData: string | null): string {
         </div>
         
         <div class="preview-features">
-          <div class="feature-item">✓ Full HD Video</div>
-          <div class="feature-item">✓ No Watermark</div>
+          <div class="feature-item">✓ AI-Powered Animation</div>
+          <div class="feature-item">✓ Full HD Quality</div>
           <div class="feature-item">✓ Instant Download</div>
         </div>
       </div>
