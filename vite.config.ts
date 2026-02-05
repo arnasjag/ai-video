@@ -38,6 +38,8 @@ export default defineConfig({
       },
       workbox: {
         // Precache app shell - instant startup
+        navigateFallback: "/offline.html",
+        navigateFallbackDenylist: [/^\/api/, /^\/videos/],
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         
         // Runtime caching strategies

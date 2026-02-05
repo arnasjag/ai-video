@@ -32,8 +32,28 @@ export class App {
       router.navigate({ page: 'onboarding', step: 'intro' });
     } else {
       console.log('[App] User has completed onboarding, handling current route');
-      // Handle current route
       this.handleRoute(router.getRoute(), false);
+    }
+
+    // Online/offline detection
+    window.addEventListener('online', () => this.setOfflineBanner(false));
+    window.addEventListener('offline', () => this.setOfflineBanner(true));
+    if (!navigator.onLine) {
+      this.setOfflineBanner(true);
+    }
+  }
+
+  private setOfflineBanner(show: boolean): void {
+    const id = 'offline-banner';
+    let banner = document.getElementById(id);
+    if (show && !banner) {
+      banner = document.createElement('div');
+      banner.id = id;
+      banner.style.cssText = 'background:#f44336;color:#fff;padding:8px 16px;text-align:center;font-size:13px;position:fixed;top:0;left:0;right:0;z-index:9999';
+      banner.textContent = '📡 You are offline';
+      document.body.prepend(banner);
+    } else if (!show && banner) {
+      banner.remove();
     }
   }
 
