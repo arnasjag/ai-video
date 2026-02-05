@@ -39,6 +39,18 @@ export function render(filterId?: string): string {
         <div class="onboarding-icon">${icon}</div>
         <h1 class="onboarding-title">${title}</h1>
         <p class="onboarding-subtitle">${subtitle}</p>
+        <div class="intro-examples" style="display:flex;gap:12px;margin-top:24px;justify-content:center">
+          <div style="text-align:center">
+            <div style="font-size:48px">📷</div>
+            <div style="font-size:12px;opacity:0.6">Your Photo</div>
+          </div>
+          <div style="font-size:32px;align-self:center">→</div>
+          <div style="text-align:center">
+            <div style="font-size:48px">🎥</div>
+            <div style="font-size:12px;opacity:0.6">AI Video</div>
+          </div>
+        </div>
+        <p style="opacity:0.5;font-size:13px;margin-top:16px">⏱ Takes about 1 minute</p>
       </div>
       <div class="onboarding-footer">
         <button class="onboarding-cta" id="start-btn">Get Started</button>
@@ -54,20 +66,6 @@ export function init(callbacks: OnboardingCallbacks): void {
   const standalone = isStandalone();
   console.log('[IntroScreen] mobile:', mobile, 'standalone:', standalone);
 
-  // Delay AddToHomeScreen prompt to prevent blocking button interaction
-  if (!standalone && mobile && window.AddToHomeScreen) {
-    setTimeout(() => {
-      console.log('[IntroScreen] Showing add-to-homescreen prompt (delayed)');
-      window.AddToHomeScreenInstance = window.AddToHomeScreen({
-        appName: 'AI Video',
-        appIconUrl: '/apple-touch-icon.png',
-        assetUrl: 'https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.5/dist/assets/img/',
-        maxModalDisplayCount: 1
-      });
-      window.AddToHomeScreenInstance.show('en');
-    }, 500);
-  }
-
   const startBtn = document.getElementById('start-btn');
   console.log('[IntroScreen] Button found:', !!startBtn);
 
@@ -80,9 +78,6 @@ export function init(callbacks: OnboardingCallbacks): void {
       haptic('light');
       
       console.log('[IntroScreen] Button clicked, navigating to upload');
-      if (window.AddToHomeScreenInstance) {
-        window.AddToHomeScreenInstance.hide();
-      }
       callbacks.onNavigate('upload');
     });
   } else {
