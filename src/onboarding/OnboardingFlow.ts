@@ -42,6 +42,7 @@ export class OnboardingFlow {
         this.videoId = videoId;
       },
       getVideo: () => this.generatedVideo,
+      getVideoId: () => this.videoId,
       onComplete: () => {
         store.completeOnboarding();
         if (this.filterId) {

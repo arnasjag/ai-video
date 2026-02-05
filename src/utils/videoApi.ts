@@ -3,7 +3,7 @@
  * Communicates with the fal.ai-powered backend
  */
 
-const API_URL = 'http://100.71.249.98:8001';
+import { API_URL } from '../config';
 const KLING_WORKFLOW = 'workflows/Hyperday/klinglowresdemo';
 
 // Available video generation models
