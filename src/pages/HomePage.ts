@@ -9,15 +9,28 @@ import { showPaymentModal } from '../components/PaymentModal';
 import { store } from '../app/Store';
 import { initPullToRefresh } from '../components/PullToRefresh';
 
+function renderSkeletonSection(): string {
+  const cards = Array.from({ length: 3 }, () =>
+    '<div class="skeleton skeleton-card"></div>'
+  ).join('');
+  return `
+    <div class="skeleton-section">
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton-row">${cards}</div>
+    </div>
+  `;
+}
+
 export function render(): string {
-  const sections = filterSections.map(s => renderFilterSection(s)).join('');
+  // Render skeleton first, replace with real content on init
+  const skeletons = Array.from({ length: 3 }, () => renderSkeletonSection()).join('');
   
   return `
     <div class="page page-home" id="home-page">
       ${renderHeader({ onUpgrade: () => {}, onProfile: () => {} })}
       ${renderChipFilters(defaultChips, 'all')}
-      <main class="home-content">
-        ${sections}
+      <main class="home-content" id="home-content">
+        ${skeletons}
       </main>
       ${renderBottomNav('home')}
     </div>
@@ -29,6 +42,15 @@ export function init(): void {
   const header = document.querySelector('.app-header');
   const statusBar = document.querySelector('.status-bar-bg');
   
+  // Replace skeletons with real content
+  requestAnimationFrame(() => {
+    const content = document.getElementById('home-content');
+    if (content) {
+      content.innerHTML = filterSections.map(s => renderFilterSection(s)).join('');
+      initFilterCards((filterId) => router.navigate({ page: 'filter', filterId }));
+    }
+  });
+
   if (page) {
     // Scroll effect for header
     page.addEventListener('scroll', () => {
@@ -66,6 +88,5 @@ export function init(): void {
   });
 
   initChipFilters((chipId) => console.log('Chip:', chipId));
-  initFilterCards((filterId) => router.navigate({ page: 'filter', filterId }));
   initBottomNav();
 }
